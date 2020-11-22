@@ -1,48 +1,17 @@
-#######################################################
-# set a base image with environment to build from
-#######################################################
-FROM ubuntu:18.04 AS scratch
-ARG MYSQL_HOST
-ARG MYSQL_ADMIN_LOGIN
-ARG MYSQL_ADMIN_PASSWORD
-ARG BLUECHERRY_DB_USER
-ARG BLUECHERRY_DB_PASSWORD
-ARG BLUECHERRY_DB_NAME
-ARG BLUECHERRY_USERHOST
-ARG BLUECHERRY_GROUP_ID
-ARG BLUECHERRY_USER_ID
-
-ENV DEBIAN_FRONTEND=noninteractive
-ENV MYSQL_ADMIN_LOGIN=$MYSQL_ADMIN_LOGIN
-ENV MYSQL_ADMIN_PASSWORD=$MYSQL_ADMIN_PASSWORD
-ENV dbname=$BLUECHERRY_DB_NAME
-ENV host=$MYSQL_HOST
-ENV userhost=$BLUECHERRY_USERHOST
-ENV user=$BLUECHERRY_DB_USER
-ENV password=$BLUECHERRY_DB_PASSWORD
-ENV BLUECHERRY_GROUP_ID=${BLUECHERRY_GROUP_ID:-1001}
-ENV BLUECHERRY_USER_ID=${BLUECHERRY_USER_ID:-1001}
-
-#######################################################
-# build the application from github
-#######################################################
-
-FROM scratch AS build
-
-WORKDIR /root
-RUN \
-    apt-get update && \
-    apt-get install -y sudo supervisor
-
-#######################################################
-# create a container to host the bluecherry service
-#######################################################
-
-FROM scratch AS bluecherry
+FROM ubuntu:18.04 AS bluecherry
 MAINTAINER chall@corp.bluecherry.net
 WORKDIR /root
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV MYSQL_ADMIN_LOGIN=root
+ENV MYSQL_ADMIN_PASSWORD=pwdForMySQLvErYsEcReT
+ENV dbname=bluecherry
+ENV host=mysql
+ENV userhost=%
+ENV user=bluecherry
+ENV password=pwdForMySQLvErYsEcReT
+ENV BLUECHERRY_GROUP_ID=1000
+ENV BLUECHERRY_USER_ID=1000
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
