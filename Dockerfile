@@ -13,8 +13,6 @@ ENV password=pwdForMySQLvErYsEcReT
 ENV BLUECHERRY_GROUP_ID=1000
 ENV BLUECHERRY_USER_ID=1000
 
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
 RUN /usr/sbin/groupadd -r -f -g $BLUECHERRY_GROUP_ID bluecherry && \
     useradd -c "Bluecherry DVR" -d /var/lib/bluecherry -g bluecherry -G audio,video -r -m bluecherry -u $BLUECHERRY_USER_ID && \
     { \
@@ -41,16 +39,17 @@ RUN /usr/sbin/groupadd -r -f -g $BLUECHERRY_GROUP_ID bluecherry && \
         echo bluecherry bluecherry/db_user string $user;                                \
         echo bluecherry bluecherry/db_password password $password;                      \
     } | debconf-set-selections  && \
-        apt -y install wget gnupg supervisor && \
-    wget -q https://dl.bluecherrydvr.com/key/bluecherry.asc && \
+    apt -y install wget gnupg supervisor && \
+    apt --no-install-recommends -y install rsyslog mysql-client
+RUN wget -q https://dl.bluecherrydvr.com/key/bluecherry.asc && \
     apt-key add bluecherry.asc && \
     wget --no-check-certificate --output-document=/etc/apt/sources.list.d/bluecherry-bionic.list https://dl.bluecherrydvr.com/sources.list.d/bluecherry-bionic-unstable.list && \
-    apt-get update && \
-    apt --no-install-recommends -y install rsyslog mysql-client bluecherry
+    apt-get update
+RUN apt --no-install-recommends -y bluecherry || exit 0
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-    RUN mkdir -p /var/lib/bluecherry/recordings && \
+RUN mkdir -p /var/lib/bluecherry/recordings && \
 	chmod 770 /var/lib/bluecherry/recordings && \
-        chown bluecherry.bluecherry /var/lib/bluecherry/recordings 
+    chown bluecherry.bluecherry /var/lib/bluecherry/recordings 
 
 CMD ["/usr/bin/supervisord"]
